@@ -7,14 +7,18 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -53,7 +57,7 @@ fun BlurScreen(blurViewModel: BlurViewModel = viewModel(factory = BlurViewModel.
                 blurUiState = uiState,
                 blurAmountOptions = blurViewModel.blurAmount,
                 applyBlur = blurViewModel::applyBlur,
-                cancelWork = {}
+                cancelWork = { blurViewModel.cancelWork()}
             )
         }
     }
@@ -92,8 +96,10 @@ fun BlurScreenContent(
         BlurActions(
             blurUiState = blurUiState,
             onStartClick = { applyBlur(selectedValue) },
-            onSeeFileClick = {},
-            onCancelClick = { cancelWork() },
+            onSeeFileClick = { currentUri ->
+                showBlurredImage(context, currentUri)
+            },
+            onCancelClick = cancelWork,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -146,8 +152,32 @@ fun BlurActions(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center
     ) {
-        Button(onClick = onStartClick) {
-            Text(text = stringResource(id = R.string.start))
+        when (blurUiState) {
+            is BlurUiState.Default -> {
+                Button(onClick = onStartClick) {
+                    Text(text = stringResource(id = R.string.start))
+                }
+            }
+
+            is BlurUiState.Loading -> {
+                FilledTonalButton(onClick = onCancelClick) {
+                    Text(text = stringResource(id = R.string.cancel_work))
+                }
+                CircularProgressIndicator(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_small)))
+            }
+
+            is BlurUiState.Complete -> {
+                Button(onClick = onStartClick) {
+                    Text(text = stringResource(id = R.string.start))
+                }
+
+                // Add a spacer and the new button with a "See File" label
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                FilledTonalButton(onClick = { onSeeFileClick(blurUiState.outputUri) }) {
+                    Text(text = stringResource(id = R.string.see_file))
+                }
+            }
+
         }
     }
 }

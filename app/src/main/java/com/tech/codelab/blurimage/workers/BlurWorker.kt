@@ -38,10 +38,6 @@ class BlurWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, 
                     Log.e(TAG, errorMessage)
                     errorMessage
                 }
-//                val picture = BitmapFactory.decodeResource(
-//                    applicationContext.resources,
-//                    R.drawable.android_cupcake
-//                )
                 val resolver = applicationContext.contentResolver
 
                 val picture = BitmapFactory.decodeStream(
